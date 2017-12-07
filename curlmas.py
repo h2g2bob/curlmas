@@ -13,11 +13,12 @@ PAGE = b"." * CONTENT_LENGTH
 def handle_connection(sock, address):
 	consume_http_headers(sock, address)
 
+	# handle values outside of the range by sending entire page
 	expired_seconds = seconds_since_dec_1()
 	if expired_seconds < 0 or expired_seconds > SECONDS_IN_ADVENT:
-		serve_error(sock, expired_seconds)
-	else:
-		serve_curlmas(sock, expired_seconds)
+		expired_seconds = SECONDS_IN_ADVENT
+
+	serve_curlmas(sock, expired_seconds)
 
 def consume_http_headers(sock, address):
 	sockf = sock.makefile()
@@ -25,12 +26,6 @@ def consume_http_headers(sock, address):
 		if not line.strip():
 			break
 		logging.debug("recv line from %r: %r", address, line)
-
-def serve_error(sock, _expired_seconds):
-	sock.sendall(b"HTTP/1.1 500 Server error\r\n")
-	sock.sendall(b"\r\n")
-	sock.sendall(b"It is not christmas.")
-	sock.close()
 
 def serve_curlmas(sock, expired_seconds):
 	# send
