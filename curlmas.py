@@ -88,9 +88,15 @@ def serve_curlmas(sock, expired_seconds):
 	expired_count = expired_seconds // SEND_FREQUENCY
 	sock.sendall(PAGE[:expired_count])
 
+	next_send = time.time()
 	for index in range(expired_count, SECONDS_IN_ADVENT):
 		sock.sendall(PAGE[index:index+1])
-		time.sleep(SEND_FREQUENCY)
+
+		# basically time.sleep(SEND_FREQUENCY) but without clock drift
+		next_send += SEND_FREQUENCY
+		sleep_time = next_send - time.time()
+		if sleep_time > 0:
+			time.sleep(sleep_time)
 
 def main():
 	logging.basicConfig(level=logging.DEBUG)
