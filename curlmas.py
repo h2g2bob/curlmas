@@ -4,11 +4,60 @@ from gevent.server import StreamServer
 import logging
 import time
 import datetime
+import re
+import itertools
 
-SECONDS_IN_ADVENT = 25 * 24 * 60 * 60
-SEND_FREQUENCY = 60
+DAYS_IN_ADVENT = 24
+SECONDS_PER_DAY = 24 * 60 * 60
+SECONDS_IN_ADVENT = DAYS_IN_ADVENT * SECONDS_PER_DAY
+
+SEND_FREQUENCY = 5
 CONTENT_LENGTH = SECONDS_IN_ADVENT // SEND_FREQUENCY
-PAGE = b"." * CONTENT_LENGTH
+DAY_CONTENT_LENGTH = SECONDS_PER_DAY // SEND_FREQUENCY
+
+global_ids=itertools.count(0)
+def read_svg(filename):
+	with open(filename, 'r', encoding='utf8') as f:
+		contents = f.read()
+	for non_unique_id in re.findall(r'id="([^"]+)"', contents):
+		contents = contents.replace(non_unique_id, "gl{}".format(next(global_ids)))
+	out = re.sub(r"\s+", " ", contents)
+	assert len(out) < DAY_CONTENT_LENGTH, filename
+	return out
+
+def make_page():
+	svgnames = [
+		"openclipart/Anonymous-Christmas-tree.svg",
+		"openclipart/cfry-Holly.svg",
+		"openclipart/karderio-Christmas-pudding.svg",
+		# "openclipart/Purple-present.svg",
+		# "openclipart/Snowflakes-Arvin61r58.svg",
+		"openclipart/TheresaKnott-Santa-Hat.svg",
+		# "openclipart/Wreath.svg",
+		"openclipart/zeimusu-Santa-line-art.svg",
+	]
+
+	content = [
+		('CURLmas: download at the same rate as christmas<br><br>Better than any normal advent calendar.<br><br><pre>curl --progress-bar curlmas.dbatley.com &gt; /dev/null\nwget -O- curlmas.dbatley.com &gt; /dev/null</pre><style>div{display:none}</style>', ''),
+	] + [
+		('<div id="d{nextday}"><h2>Day {nextday}</h2>{svg}</div>'.format(nextday=day+1, svg=read_svg(svgname)),
+			'<style>#d{nextday}{{display:block}} #d{day}{{display:none}}</style>'.format(nextday=day+1, day=day))
+		for (day, svgname) in zip(range(2, 24), itertools.cycle(svgnames))
+	] + [
+		('<div id="d{nextday}"><h2>Merry Christmas</h2>{svg}</div>'.format(nextday=25, svg=read_svg('openclipart/Anonymous-Christmas-tree.svg')),
+			'<style>#d{nextday}{{display:block}} #d{day}{{display:none}}</style>'.format(nextday=25, day=24))
+	]
+	content = [(prefix.encode("utf8"), suffix.encode("utf8")) for (prefix, suffix) in content]
+	assert len(content) == DAYS_IN_ADVENT
+
+	return b"".join(
+		prefix
+		+ (b" " * (DAY_CONTENT_LENGTH - len(prefix) - len(suffix)))
+		+ suffix
+		for prefix, suffix in content)
+
+PAGE = make_page()
+assert len(PAGE) == CONTENT_LENGTH
 
 def handle_connection(sock, address):
 	consume_http_headers(sock, address)
@@ -32,6 +81,7 @@ def serve_curlmas(sock, expired_seconds):
 	sock.sendall(b"HTTP/1.1 200 OK\r\n")
 	sock.sendall("Content-length: {:d}\r\n".format(CONTENT_LENGTH).encode("ascii"))
 	sock.sendall(b"Connection: keep-alive\r\n")
+	sock.sendall(b"Content-type: text/html\r\n")
 	sock.sendall("Keep-Alive: timeout={:d}\r\n".format(2 * SEND_FREQUENCY).encode("ascii"))
 	sock.sendall(b"\r\n")
 
@@ -49,6 +99,8 @@ def main():
 
 def seconds_since_dec_1():
 	now = datetime.datetime.now()
+	# now = datetime.datetime(now.year, 12, 3, 23, 59, 45)
+	# now = datetime.datetime(now.year, 12, 25, 12, 0, 0)
 	timedelta = now - datetime.datetime(now.year, 12, 1, 0, 0, 0)
 	return int(timedelta.total_seconds())
 
