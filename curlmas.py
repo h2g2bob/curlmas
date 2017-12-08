@@ -22,19 +22,21 @@ def read_svg(filename):
 	for non_unique_id in re.findall(r'id="([^"]+)"', contents):
 		contents = contents.replace(non_unique_id, "gl{}".format(next(global_ids)))
 	out = re.sub(r"\s+", " ", contents)
+	out = out.replace(" />", "/>")
+	out = out.replace(" <", "<")
 	assert len(out) < DAY_CONTENT_LENGTH, filename
 	return out
 
 def make_page():
 	svgnames = [
 		"openclipart/Anonymous-Christmas-tree.svg",
-		"openclipart/cfry-Holly.svg",
 		"openclipart/karderio-Christmas-pudding.svg",
-		# "openclipart/Purple-present.svg",
-		# "openclipart/Snowflakes-Arvin61r58.svg",
+		"openclipart/Purple-present.svg",
+		"openclipart/Snowflakes-Arvin61r58.svg",
+		"openclipart/cfry-Holly.svg",
 		"openclipart/TheresaKnott-Santa-Hat.svg",
-		# "openclipart/Wreath.svg",
-		"openclipart/zeimusu-Santa-line-art.svg",
+		# "openclipart/Wreath.svg", # massively smaller when optimized
+		# "openclipart/zeimusu-Santa-line-art.svg", # too scary
 	]
 
 	content = [
