@@ -73,6 +73,7 @@ def handle_connection(sock, address):
 	serve_curlmas(sock, expired_seconds)
 
 def consume_http_headers(sock, address):
+	logging.debug("new connection from %r", address)
 	sockf = sock.makefile()
 	for line in sockf:
 		if not line.strip():
@@ -92,11 +93,15 @@ def serve_curlmas(sock, expired_seconds):
 	sock.sendall(PAGE[:expired_count])
 
 	for index in range(expired_count, SECONDS_IN_ADVENT):
+		logging.debug("sending %d", index)
 		sock.sendall(PAGE[index:index+1])
 		time.sleep(SEND_FREQUENCY)
 
 def main():
-	logging.basicConfig(level=logging.DEBUG)
+	logging.basicConfig(
+		level=logging.DEBUG,
+		format='%(asctime)s %(levelname)s [%(threadName)s] %(message)s')
+	logging.info("Starting")
 	server = StreamServer(('0.0.0.0', 2525), handle_connection)
 	server.serve_forever()
 
