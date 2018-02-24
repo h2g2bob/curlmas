@@ -96,7 +96,7 @@ def serve_curlmas(sock, expired_seconds):
 
 def main():
 	logging.basicConfig(level=logging.DEBUG)
-	server = StreamServer(('127.0.0.1', 2525), handle_connection)
+	server = StreamServer(('0.0.0.0', 2525), handle_connection)
 	server.serve_forever()
 
 def seconds_since_dec_1():
