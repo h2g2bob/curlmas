@@ -6,6 +6,7 @@ import time
 import datetime
 import re
 import itertools
+import make_problem_worse
 
 DAYS_IN_ADVENT = 24
 SECONDS_PER_DAY = 24 * 60 * 60
