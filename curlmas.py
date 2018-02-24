@@ -40,21 +40,21 @@ def make_page():
 	]
 
 	content = [
-		('CURLmas: download at the same rate as christmas<br><br>Better than any normal advent calendar.<br><br><pre>curl --progress-bar curlmas.dbatley.com &gt; /dev/null\nwget -O- curlmas.dbatley.com &gt; /dev/null</pre><style>div{display:none}</style>', ''),
+		('CURLmas: download at the same rate as christmas<br><br>Better than any normal advent calendar.<br><br><pre>curl --progress-bar curlmas.dbatley.com &gt; /dev/null\nwget -O- curlmas.dbatley.com &gt; /dev/null</pre><style>div{display:none}</style><!--', '-->'),
 	] + [
-		('<div id="d{nextday}"><h2>Day {nextday}</h2>{svg}</div>'.format(nextday=day+1, svg=read_svg(svgname)),
-			'<style>#d{nextday}{{display:block}} #d{day}{{display:none}}</style>'.format(nextday=day+1, day=day))
+		('<div id="d{nextday}"><h2>Day {nextday}</h2>{svg}</div><!--'.format(nextday=day+1, svg=read_svg(svgname)),
+			'--><style>#d{nextday}{{display:block}} #d{day}{{display:none}}</style>'.format(nextday=day+1, day=day))
 		for (day, svgname) in zip(range(2, 24), itertools.cycle(svgnames))
 	] + [
-		('<div id="d{nextday}"><h2>Merry Christmas</h2>{svg}</div>'.format(nextday=25, svg=read_svg('openclipart/Anonymous-Christmas-tree.svg')),
-			'<style>#d{nextday}{{display:block}} #d{day}{{display:none}}</style>'.format(nextday=25, day=24))
+		('<div id="d{nextday}"><h2>Merry Christmas</h2>{svg}</div><!--'.format(nextday=25, svg=read_svg('openclipart/Anonymous-Christmas-tree.svg')),
+			'--><style>#d{nextday}{{display:block}} #d{day}{{display:none}}</style>'.format(nextday=25, day=24))
 	]
 	content = [(prefix.encode("utf8"), suffix.encode("utf8")) for (prefix, suffix) in content]
 	assert len(content) == DAYS_IN_ADVENT
 
 	return b"".join(
 		prefix
-		+ (b" " * (DAY_CONTENT_LENGTH - len(prefix) - len(suffix)))
+		+ (b"." * (DAY_CONTENT_LENGTH - len(prefix) - len(suffix)))
 		+ suffix
 		for prefix, suffix in content)
 
