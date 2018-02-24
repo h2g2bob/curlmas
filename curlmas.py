@@ -92,7 +92,7 @@ def serve_curlmas(sock, expired_seconds):
 	expired_count = expired_seconds // SEND_FREQUENCY
 	sock.sendall(PAGE[:expired_count])
 
-	for index in range(expired_count, SECONDS_IN_ADVENT):
+	for index in range(expired_count, CONTENT_LENGTH):
 		logging.debug("sending %d", index)
 		sock.sendall(PAGE[index:index+1])
 		time.sleep(SEND_FREQUENCY)
